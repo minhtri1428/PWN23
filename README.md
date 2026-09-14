@@ -1,5 +1,5 @@
 # writeup-task0
-# >  #                         COMPUTER STRUCTURE
+# >                    COMPUTER STRUCTURE
 
 ---
 
