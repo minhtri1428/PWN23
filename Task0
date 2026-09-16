@@ -8,7 +8,7 @@
         │ ├────────┤ │
         │ │  ALU   │ │  (Arithmetic Logic Unit)
         │ ├────────┤ │
-        │ │Registers│ │
+        │ │Registers││
         │ └────────┘ │
         └─────┬──────┘
               │  Bus (địa chỉ / dữ liệu / điều khiển)
@@ -22,10 +22,10 @@
 + Ý tưởng cốt lõi của von Neumann: code (chương trình) và data (dữ liệu) được lưu chung trong một vùng nhớ, CPU đọc lệnh từ bộ nhớ, giải mã, rồi thực thi — đây là lý do vì sao các lỗi như buffer overflow có thể nguy hiểm: dữ liệu và lệnh nằm cùng một không gian địa chỉ, nên ghi đè dữ liệu có thể ảnh hưởng tới luồng thực thi.
 
 - Các thành phần chính của CPU
-+Control Unit (CU): điều phối, giải mã lệnh, quyết định lệnh tiếp theo cần lấy từ đâu (dựa vào rip).
-++ALU (Arithmetic Logic Unit): thực hiện các phép toán số học (cộng, trừ...) và logic (AND, OR, XOR, so sánh...).
-+Registers: bộ nhớ siêu nhanh ngay trong CPU, dùng để chứa toán hạng, kết quả tạm, con trỏ.
-+Cache (L1/L2/L3): bộ nhớ đệm giữa CPU và RAM, giúp tăng tốc truy cập dữ liệu hay dùng lại.
++ Control Unit (CU): điều phối, giải mã lệnh, quyết định lệnh tiếp theo cần lấy từ đâu (dựa vào rip).
++ ALU (Arithmetic Logic Unit): thực hiện các phép toán số học (cộng, trừ...) và logic (AND, OR, XOR, so sánh...).
++ Registers: bộ nhớ siêu nhanh ngay trong CPU, dùng để chứa toán hạng, kết quả tạm, con trỏ.
++ Cache (L1/L2/L3): bộ nhớ đệm giữa CPU và RAM, giúp tăng tốc truy cập dữ liệu hay dùng lại.
 
 - Chu trình Fetch–Decode–Execute
 + Mọi lệnh máy đều được CPU xử lý qua 3 bước lặp lại liên tục:
@@ -114,7 +114,7 @@ Hiểu memory layout là nền tảng bắt buộc để hiểu các lỗi như 
 5. Bit, Byte và Endianness
 Bit: đơn vị nhỏ nhất, giá trị 0 hoặc 1.
 Byte: 8 bit, biểu diễn được giá trị từ 0–255 (0x00–0xFF).
-MSB (Most Significant Bit/Byte): bit/byte có trọng số lớn nhất (thường ở "bên trái" khi viết ra giấy).
+MSB (Most Significant Bit/Byte): bit/byte có trọng số lớn nhất .
 LSB (Least Significant Bit/Byte): bit/byte có trọng số nhỏ nhất.
 Endianness — cách sắp xếp byte trong bộ nhớ
 Giả sử ta có giá trị 4-byte: 0x12345678 (viết theo cách con người đọc, MSB trước).
