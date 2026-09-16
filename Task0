@@ -1,6 +1,6 @@
-  1. Kiến trúc máy tính tổng quát
+#  1. Kiến trúc máy tính tổng quát
 
-Mô hình von Neumann
+- Mô hình von Neumann
         ┌────────────┐
         │    CPU     │
         │ ┌────────┐ │
@@ -19,15 +19,16 @@ Mô hình von Neumann
 │ (RAM)  │ │(bàn phím,│ (ổ đĩa)│
 │        │ │ màn hình)│        │
 └────────┘ └────────┘  └────────┘
-Ý tưởng cốt lõi của von Neumann: code (chương trình) và data (dữ liệu) được lưu chung trong một vùng nhớ, CPU đọc lệnh từ bộ nhớ, giải mã, rồi thực thi — đây là lý do vì sao các lỗi như buffer overflow có thể nguy hiểm: dữ liệu và lệnh nằm cùng một không gian địa chỉ, nên ghi đè dữ liệu có thể ảnh hưởng tới luồng thực thi.
++ Ý tưởng cốt lõi của von Neumann: code (chương trình) và data (dữ liệu) được lưu chung trong một vùng nhớ, CPU đọc lệnh từ bộ nhớ, giải mã, rồi thực thi — đây là lý do vì sao các lỗi như buffer overflow có thể nguy hiểm: dữ liệu và lệnh nằm cùng một không gian địa chỉ, nên ghi đè dữ liệu có thể ảnh hưởng tới luồng thực thi.
 
-Các thành phần chính của CPU
-Control Unit (CU): điều phối, giải mã lệnh, quyết định lệnh tiếp theo cần lấy từ đâu (dựa vào rip).
-ALU (Arithmetic Logic Unit): thực hiện các phép toán số học (cộng, trừ...) và logic (AND, OR, XOR, so sánh...).
-Registers: bộ nhớ siêu nhanh ngay trong CPU, dùng để chứa toán hạng, kết quả tạm, con trỏ.
-Cache (L1/L2/L3): bộ nhớ đệm giữa CPU và RAM, giúp tăng tốc truy cập dữ liệu hay dùng lại.
-Chu trình Fetch–Decode–Execute
-Mọi lệnh máy đều được CPU xử lý qua 3 bước lặp lại liên tục:
+- Các thành phần chính của CPU
++Control Unit (CU): điều phối, giải mã lệnh, quyết định lệnh tiếp theo cần lấy từ đâu (dựa vào rip).
+++ALU (Arithmetic Logic Unit): thực hiện các phép toán số học (cộng, trừ...) và logic (AND, OR, XOR, so sánh...).
++Registers: bộ nhớ siêu nhanh ngay trong CPU, dùng để chứa toán hạng, kết quả tạm, con trỏ.
++Cache (L1/L2/L3): bộ nhớ đệm giữa CPU và RAM, giúp tăng tốc truy cập dữ liệu hay dùng lại.
+
+- Chu trình Fetch–Decode–Execute
++ Mọi lệnh máy đều được CPU xử lý qua 3 bước lặp lại liên tục:
 
 Fetch: lấy lệnh tại địa chỉ rip đang trỏ tới, từ bộ nhớ.
 Decode: giải mã xem đây là lệnh gì (mov, add, jmp...) và toán hạng là gì.
