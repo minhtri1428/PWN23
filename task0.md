@@ -1,1 +1,257 @@
+1. Kiến trúc máy tính tổng quát
+Trước khi đi vào x86-64, cần nắm sơ đồ tổng quát của một hệ thống máy tính — hầu hết máy tính hiện đại đều dựa trên kiến trúc von Neumann.
+
+Mô hình von Neumann
+        ┌────────────┐
+        │    CPU     │
+        │ ┌────────┐ │
+        │ │  CU    │ │  (Control Unit)
+        │ ├────────┤ │
+        │ │  ALU   │ │  (Arithmetic Logic Unit)
+        │ ├────────┤ │
+        │ │Registers│ │
+        │ └────────┘ │
+        └─────┬──────┘
+              │  Bus (địa chỉ / dữ liệu / điều khiển)
+    ┌─────────┼──────────┐
+    │         │          │
+┌───▼───┐ ┌───▼───┐  ┌───▼────┐
+│ Memory │ │  I/O  │  │ Storage│
+│ (RAM)  │ │(bàn phím,│ (ổ đĩa)│
+│        │ │ màn hình)│        │
+└────────┘ └────────┘  └────────┘
+Ý tưởng cốt lõi của von Neumann: code (chương trình) và data (dữ liệu) được lưu chung trong một vùng nhớ, CPU đọc lệnh từ bộ nhớ, giải mã, rồi thực thi — đây là lý do vì sao các lỗi như buffer overflow có thể nguy hiểm: dữ liệu và lệnh nằm cùng một không gian địa chỉ, nên ghi đè dữ liệu có thể ảnh hưởng tới luồng thực thi.
+
+Các thành phần chính của CPU
+Control Unit (CU): điều phối, giải mã lệnh, quyết định lệnh tiếp theo cần lấy từ đâu (dựa vào rip).
+ALU (Arithmetic Logic Unit): thực hiện các phép toán số học (cộng, trừ...) và logic (AND, OR, XOR, so sánh...).
+Registers: bộ nhớ siêu nhanh ngay trong CPU, dùng để chứa toán hạng, kết quả tạm, con trỏ (xem chi tiết ở phần 2).
+Cache (L1/L2/L3): bộ nhớ đệm giữa CPU và RAM, giúp tăng tốc truy cập dữ liệu hay dùng lại.
+Chu trình Fetch–Decode–Execute
+Mọi lệnh máy đều được CPU xử lý qua 3 bước lặp lại liên tục:
+
+Fetch: lấy lệnh tại địa chỉ rip đang trỏ tới, từ bộ nhớ.
+Decode: giải mã xem đây là lệnh gì (mov, add, jmp...) và toán hạng là gì.
+Execute: thực thi lệnh đó (qua ALU nếu là phép toán, qua CU nếu là điều khiển luồng...), rồi cập nhật rip trỏ tới lệnh tiếp theo (hoặc nhảy tới địa chỉ khác nếu là lệnh jmp/call/ret).
+Memory Hierarchy (phân cấp bộ nhớ)
+Từ nhanh/nhỏ/đắt nhất đến chậm/lớn/rẻ nhất:
+
+Registers  →  Cache (L1/L2/L3)  →  RAM  →  Disk (SSD/HDD)
+(nhanh nhất,                              (chậm nhất,
+ dung lượng nhỏ nhất)                      dung lượng lớn nhất)
+Hiểu phân cấp này giúp hiểu vì sao truy cập register/stack (đã nằm gần CPU, thường trong cache) lại nhanh hơn nhiều so với truy cập heap lớn hay đọc file trên đĩa.
+
+32-bit vs 64-bit
+Con số "32-bit" hay "64-bit" thường chỉ độ rộng thanh ghi và độ rộng bus địa chỉ của CPU.
+CPU 64-bit có thể địa chỉ hóa không gian nhớ lớn hơn rất nhiều (2^64 so với 2^32), và các thanh ghi đa dụng rộng 64-bit thay vì 32-bit.
+Trên Linux, các binary 32-bit (x86) và 64-bit (x86-64) có ABI và bộ thanh ghi khác nhau — cần chú ý khi phân tích bằng file hoặc readelf -h để biết đang làm việc với kiến trúc nào.
+2. Kiến trúc x86-64
+x86-64 (hay AMD64) là kiến trúc CPU 64-bit, mở rộng từ x86 32-bit. Một số điểm cốt lõi:
+
+CPU thực thi lệnh máy (machine code) tuần tự, lệnh được nạp từ vùng nhớ text (code segment).
+Dữ liệu được thao tác qua các thanh ghi (registers) — bộ nhớ siêu nhanh nằm ngay trong CPU.
+Có 16 thanh ghi đa dụng 64-bit: rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, r8, r9, r10, r11, r12, r13, r14, r15.
+Ngoài ra còn rip (instruction pointer — trỏ tới lệnh tiếp theo sẽ thực thi) và rflags (cờ trạng thái: zero flag, carry flag, sign flag...).
+Cách chia nhỏ một thanh ghi (ví dụ với rax)
+Tên	Độ rộng	Ý nghĩa
+rax	64-bit	Toàn bộ thanh ghi
+eax	32-bit	32 bit thấp của rax
+ax	16-bit	16 bit thấp của eax
+ah	8-bit	Byte cao của ax
+al	8-bit	Byte thấp của ax
+Lưu ý quan trọng: khi ghi vào eax (32-bit), CPU tự động zero-extend — xóa toàn bộ 32 bit cao của rax. Nhưng khi ghi vào ax hoặc al, phần cao hơn giữ nguyên (không bị xóa).
+
+Vai trò thường dùng của một số thanh ghi
+rax: thường chứa giá trị trả về của hàm, và trong syscall là số hiệu syscall.
+rdi, rsi, rdx, rcx, r8, r9: chứa 6 tham số đầu tiên khi gọi hàm (System V ABI).
+rbp: base pointer — trỏ tới đáy của stack frame hiện tại.
+rsp: stack pointer — luôn trỏ tới đỉnh (top) của stack.
+rip: instruction pointer — đây là mục tiêu chính khi khai thác lỗi (control rip = kiểm soát luồng thực thi chương trình).
+3. Calling Convention (System V AMD64 ABI — dùng trên Linux)
+Khi một hàm được gọi (call), quy ước sau được áp dụng:
+
+Tham số truyền theo thứ tự: rdi, rsi, rdx, rcx, r8, r9. Nếu nhiều hơn 6 tham số, các tham số dư được đẩy lên stack.
+Giá trị trả về nằm ở rax (nếu là số nguyên/con trỏ).
+Khi gọi hàm bằng lệnh call, địa chỉ trở về (return address) — tức địa chỉ lệnh ngay sau call — được tự động đẩy vào stack.
+Hàm kết thúc bằng ret, lệnh này pop giá trị trên đỉnh stack ra và nhảy (jmp) tới đó — đây chính là cơ chế mà buffer overflow lợi dụng để chiếm quyền điều khiển rip.
+Thanh ghi nào được callee lưu lại (callee-saved) và caller lưu lại (caller-saved)?
+Callee-saved (hàm được gọi phải bảo toàn giá trị): rbx, rbp, r12, r13, r14, r15.
+Caller-saved (hàm gọi phải tự lưu nếu cần dùng lại sau khi gọi): rax, rcx, rdx, rsi, rdi, r8-r11.
+Ví dụ prologue/epilogue của một hàm điển hình
+push rbp        ; lưu rbp cũ của caller
+mov  rbp, rsp   ; thiết lập rbp mới = đỉnh stack hiện tại
+sub  rsp, 0x20  ; cấp phát local variables (32 byte)
+; ... thân hàm ...
+leave           ; tương đương: mov rsp, rbp; pop rbp
+ret             ; pop return address vào rip
+4. Memory Layout của một chương trình
+Khi chương trình chạy, không gian địa chỉ ảo (virtual address space) của nó được chia thành các vùng, thường sắp theo thứ tự địa chỉ thấp → cao như sau:
+
+Địa chỉ cao  ┌─────────────────────┐
+             │        Stack        │  ← local variables, return address
+             │          ↓          │     (mọc xuống địa chỉ thấp)
+             │                     │
+             │  (khoảng trống)     │
+             │                     │
+             │          ↑          │
+             │         Heap        │  ← malloc/new cấp phát
+             ├─────────────────────┤
+             │   BSS (biến chưa    │  ← global/static chưa khởi tạo
+             │   khởi tạo = 0)     │
+             ├─────────────────────┤
+             │   Data (biến đã     │  ← global/static đã khởi tạo
+             │   khởi tạo)         │
+             ├─────────────────────┤
+Địa chỉ thấp │   Text (code)       │  ← mã máy của chương trình (read-only)
+             └─────────────────────┘
+Text: chứa mã máy, thường chỉ có quyền đọc + thực thi (r-x), không ghi được.
+Data/BSS: biến toàn cục và static.
+Heap: cấp phát động (malloc, new), mọc từ địa chỉ thấp lên cao.
+Stack: nơi lưu local variable, tham số, return address; mọc từ địa chỉ cao xuống thấp.
+Giữa heap và stack có một vùng trống lớn, và còn có thêm vùng cho shared libraries (libc.so...) thường nằm gần đỉnh không gian địa chỉ hoặc ở vị trí ngẫu nhiên nếu bật ASLR (Address Space Layout Randomization).
+Hiểu memory layout là nền tảng bắt buộc để hiểu các lỗi như buffer overflow (ghi đè dữ liệu trên stack), heap overflow, use-after-free...
+
+5. Bit, Byte và Endianness
+Bit: đơn vị nhỏ nhất, giá trị 0 hoặc 1.
+Byte: 8 bit, biểu diễn được giá trị từ 0–255 (0x00–0xFF).
+MSB (Most Significant Bit/Byte): bit/byte có trọng số lớn nhất (thường ở "bên trái" khi viết ra giấy).
+LSB (Least Significant Bit/Byte): bit/byte có trọng số nhỏ nhất.
+Endianness — cách sắp xếp byte trong bộ nhớ
+Giả sử ta có giá trị 4-byte: 0x12345678 (viết theo cách con người đọc, MSB trước).
+
+Little-endian (x86/x86-64 dùng cái này): byte có trọng số thấp nhất được lưu ở địa chỉ thấp nhất.
+
+Địa chỉ:   0x00  0x01  0x02  0x03
+Giá trị:   0x78  0x56  0x34  0x12
+Big-endian (dùng trong một số kiến trúc mạng, network byte order): byte có trọng số cao nhất lưu ở địa chỉ thấp nhất.
+
+Địa chỉ:   0x00  0x01  0x02  0x03
+Giá trị:   0x12  0x34  0x56  0x78
+Mẹo nhớ: x86 = little-endian → khi dump memory bằng gdb/xxd, nếu thấy chuỗi byte trông "ngược", đó là bình thường — cần đảo ngược lại để đọc ra giá trị số thật.
+
+Ví dụ thực hành: chuỗi byte 41 41 41 41 42 42 42 42 trên stack (little-endian), nếu đọc thành 2 giá trị 4-byte, ta được 0x41414141 và 0x42424242 — đây là kiểu dữ liệu rất hay gặp khi debug buffer overflow (do 'A' = 0x41, 'B' = 0x42).
+
+6. Stack
+Stack là vùng nhớ hoạt động theo cơ chế LIFO (Last In, First Out).
+
+Push và Pop
+push <giá trị>:
+Giảm rsp đi 8 (vì mỗi lần push/pop trên x86-64 làm việc với 8 byte).
+Ghi giá trị vào địa chỉ [rsp] mới.
+pop <thanh ghi>:
+Đọc giá trị tại [rsp].
+Tăng rsp lên 8.
+Trước push:        Sau push rax (rax = 0x41):
+rsp → [ ... ]       [ ... ]
+                    rsp → [ 0x41 ]   ← rsp giảm, giá trị mới nằm đây
+Stack frame của một hàm
+Mỗi khi một hàm được gọi, một "khung" (frame) mới được tạo trên stack, thường chứa:
+
+Return address (do call tự động push)
+Saved rbp cũa caller (do push rbp trong prologue)
+Local variables (cấp phát bằng sub rsp, N)
+Đôi khi có thêm buffer canary (stack protector) để chống overflow
+Địa chỉ cao
+┌───────────────────┐
+│  Return address    │  ← do lệnh `call` push vào
+├───────────────────┤
+│  Saved rbp (old)   │  ← do prologue push rbp
+├───────────────────┤ ← rbp trỏ vào đây
+│  Local variable 1  │
+├───────────────────┤
+│  Local variable 2  │
+├───────────────────┤ ← rsp trỏ vào đây (đỉnh stack hiện tại)
+Địa chỉ thấp
+Mối liên hệ giữa Stack, Memory và Register
+rsp và rbp là thanh ghi nhưng giá trị của chúng là địa chỉ bộ nhớ trỏ vào vùng stack.
+Khi một buffer local (ví dụ char buf[16]) bị ghi tràn (overflow) mà không kiểm tra độ dài, dữ liệu ghi thừa sẽ đè lên saved rbp, rồi đè lên return address. Nếu kẻ tấn công kiểm soát được return address, họ có thể điều khiển rip sau khi hàm ret — đây chính là ý tưởng cốt lõi của stack buffer overflow.
+7. Hex và Binary
+Bảng quy đổi nhanh
+Decimal	Binary	Hex
+0	0000	0x0
+5	0101	0x5
+10	1010	0xA
+15	1111	0xF
+255	11111111	0xFF
+Cách đổi Hex ↔ Binary nhanh
+Mỗi ký tự hex tương ứng chính xác 4 bit → ghép trực tiếp, không cần qua decimal.
+
+Ví dụ: 0xA3 → A = 1010, 3 = 0011 → 10100011.
+
+Công cụ thực hành trên Linux
+python3 -c "print(hex(1234))"        # decimal -> hex
+python3 -c "print(int('1F', 16))"    # hex -> decimal
+python3 -c "print(bin(200))"         # decimal -> binary
+echo -n "AAAA" | xxd                 # xem giá trị hex/ascii của chuỗi
+printf '%x\n' 255                    # in ra hex
+Thao tác dữ liệu dạng bytes trong Python (rất hay dùng khi viết exploit)
+import struct
+
+# Đóng gói số nguyên thành little-endian 4 byte
+data = struct.pack("<I", 0x41424344)   # b'DCBA'
+
+# Ngược lại: unpack
+value = struct.unpack("<I", data)[0]
+
+# pwntools cung cấp sẵn hàm tiện lợi hơn
+from pwn import p32, p64, u32, u64
+p64(0x4141414141414141)   # pack 8 byte little-endian
+8. Linux cơ bản cần biết
+Lệnh	Công dụng
+ls -la	Liệt kê file, gồm cả file ẩn và permission
+cd, pwd	Di chuyển và xem thư mục hiện tại
+cat, less	Xem nội dung file
+chmod +x file	Cấp quyền thực thi cho file
+file <binary>	Xác định loại file (ELF 64-bit, PIE, stripped...)
+strings <binary>	In ra các chuỗi ký tự in được trong file — hữu ích để tìm hint
+objdump -d -M intel binary	Disassemble file, xem mã Assembly (cú pháp Intel)
+readelf -h/-S binary	Xem header, section của file ELF
+gdb ./binary	Debugger — công cụ trung tâm để phân tích/khai thác binary
+checksec ./binary	(cần cài pwntools) Kiểm tra các cơ chế bảo vệ: NX, PIE, Canary, RELRO
+ltrace, strace	Theo dõi lời gọi hàm thư viện / syscall của chương trình khi chạy
+Một số lệnh gdb hay dùng khi mới bắt đầu
+break main          # đặt breakpoint tại hàm main
+run                  # chạy chương trình
+info registers       # xem giá trị toàn bộ thanh ghi
+x/20xg $rsp          # xem 20 giá trị 8-byte (g=giant) tại $rsp dạng hex
+disassemble main     # xem assembly của hàm main
+stepi / nexti        # chạy từng lệnh assembly một
+9. Assembly cơ bản (x86-64, cú pháp Intel)
+Trên Linux, gdb và objdump mặc định dùng cú pháp AT&T. Có thể chuyển sang Intel (dễ đọc hơn cho người mới) bằng:
+
+Trong gdb: set disassembly-flavor intel
+Với objdump: thêm cờ -M intel
+Các lệnh (instruction) cơ bản
+Lệnh	Ý nghĩa
+mov dst, src	Copy giá trị từ src vào dst
+push src / pop dst	Đẩy vào / lấy ra khỏi stack
+add, sub	Cộng, trừ
+cmp a, b	So sánh a và b (thực chất là a - b, chỉ set flag)
+test a, b	AND bit-wise giữa a và b, chỉ set flag
+je, jne, jg, jl	Nhảy có điều kiện (equal, not equal, greater, less) dựa theo flag sau cmp/test
+jmp addr	Nhảy không điều kiện
+call addr	Gọi hàm: push return address, nhảy tới addr
+ret	Pop giá trị từ stack vào rip, quay về caller
+lea dst, [addr]	Load địa chỉ (không phải giá trị) vào dst
+syscall	Gọi system call của kernel (Linux x86-64)
+Ví dụ đoạn Assembly đơn giản (Intel syntax)
+mov eax, 5        ; eax = 5
+add eax, 3        ; eax = eax + 3 = 8
+cmp eax, 8        ; so sánh eax với 8 -> set ZF=1 vì bằng nhau
+je  equal_label   ; nếu bằng thì nhảy tới equal_label
+Syscall trên Linux x86-64 — nền tảng để viết shellcode
+Quy ước gọi syscall (khác với calling convention của hàm bình thường!):
+
+rax = số hiệu syscall
+Tham số theo thứ tự: rdi, rsi, rdx, r10, r8, r9 (chú ý: dùng r10 thay vì rcx so với calling convention hàm thường)
+Lệnh syscall để gọi vào kernel
+Ví dụ: gọi write(1, "hi", 2) bằng Assembly thô (syscall number của write là 1):
+
+mov rax, 1        ; syscall number: write
+mov rdi, 1        ; fd = 1 (stdout)
+lea rsi, [msg]    ; địa chỉ buffer chứa dữ liệu cần in
+mov rdx, 2        ; số byte cần ghi
+syscall
+Đây chính là nền tảng để viết shellcode — đoạn mã máy nhỏ gọn (không phụ thuộc libc) mà một exploit sẽ inject và thực thi trực tiếp qua syscall.
+
 
