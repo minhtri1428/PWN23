@@ -1,122 +1,93 @@
-1. Kiến trúc máy tính tổng quát
-Trước khi đi vào x86-64, cần nắm sơ đồ tổng quát của một hệ thống máy tính — hầu hết máy tính hiện đại đều dựa trên kiến trúc von Neumann.
+# 1. Kiến trúc máy tính tổng quát
 
-Mô hình von Neumann
-        ┌────────────┐
-        │    CPU     │
-        │ ┌────────┐ │
-        │ │  CU    │ │  (Control Unit)
-        │ ├────────┤ │
-        │ │  ALU   │ │  (Arithmetic Logic Unit)
-        │ ├────────┤ │
-        │ │Registers│ │
-        │ └────────┘ │
-        └─────┬──────┘
-              │  Bus (địa chỉ / dữ liệu / điều khiển)
-    ┌─────────┼──────────┐
-    │         │          │
-┌───▼───┐ ┌───▼───┐  ┌───▼────┐
-│ Memory │ │  I/O  │  │ Storage│
-│ (RAM)  │ │(bàn phím,│ (ổ đĩa)│
-│        │ │ màn hình)│        │
-└────────┘ └────────┘  └────────┘
-Ý tưởng cốt lõi của von Neumann: code (chương trình) và data (dữ liệu) được lưu chung trong một vùng nhớ, CPU đọc lệnh từ bộ nhớ, giải mã, rồi thực thi — đây là lý do vì sao các lỗi như buffer overflow có thể nguy hiểm: dữ liệu và lệnh nằm cùng một không gian địa chỉ, nên ghi đè dữ liệu có thể ảnh hưởng tới luồng thực thi.
 
-Các thành phần chính của CPU
-Control Unit (CU): điều phối, giải mã lệnh, quyết định lệnh tiếp theo cần lấy từ đâu (dựa vào rip).
-ALU (Arithmetic Logic Unit): thực hiện các phép toán số học (cộng, trừ...) và logic (AND, OR, XOR, so sánh...).
-Registers: bộ nhớ siêu nhanh ngay trong CPU, dùng để chứa toán hạng, kết quả tạm, con trỏ (xem chi tiết ở phần 2).
-Cache (L1/L2/L3): bộ nhớ đệm giữa CPU và RAM, giúp tăng tốc truy cập dữ liệu hay dùng lại.
-Chu trình Fetch–Decode–Execute
-Mọi lệnh máy đều được CPU xử lý qua 3 bước lặp lại liên tục:
+## Mô hình von Neumann
 
-Fetch: lấy lệnh tại địa chỉ rip đang trỏ tới, từ bộ nhớ.
-Decode: giải mã xem đây là lệnh gì (mov, add, jmp...) và toán hạng là gì.
-Execute: thực thi lệnh đó (qua ALU nếu là phép toán, qua CU nếu là điều khiển luồng...), rồi cập nhật rip trỏ tới lệnh tiếp theo (hoặc nhảy tới địa chỉ khác nếu là lệnh jmp/call/ret).
-Memory Hierarchy (phân cấp bộ nhớ)
-Từ nhanh/nhỏ/đắt nhất đến chậm/lớn/rẻ nhất:
+<img width="782" height="567" alt="image" src="https://github.com/user-attachments/assets/a8d70ea6-2476-42b8-b0d5-911ae0cc7042" />
 
-Registers  →  Cache (L1/L2/L3)  →  RAM  →  Disk (SSD/HDD)
-(nhanh nhất,                              (chậm nhất,
- dung lượng nhỏ nhất)                      dung lượng lớn nhất)
-Hiểu phân cấp này giúp hiểu vì sao truy cập register/stack (đã nằm gần CPU, thường trong cache) lại nhanh hơn nhiều so với truy cập heap lớn hay đọc file trên đĩa.
+### - Ý tưởng cốt lõi của von Neumann: code (chương trình) và data (dữ liệu) được lưu chung trong một vùng nhớ, CPU đọc lệnh từ bộ nhớ, giải mã, rồi thực thi — đây là lý do vì sao các lỗi như buffer overflow có thể nguy hiểm: dữ liệu và lệnh nằm cùng một không gian địa chỉ, nên ghi đè dữ liệu có thể ảnh hưởng tới luồng thực thi.
 
-32-bit vs 64-bit
-Con số "32-bit" hay "64-bit" thường chỉ độ rộng thanh ghi và độ rộng bus địa chỉ của CPU.
-CPU 64-bit có thể địa chỉ hóa không gian nhớ lớn hơn rất nhiều (2^64 so với 2^32), và các thanh ghi đa dụng rộng 64-bit thay vì 32-bit.
-Trên Linux, các binary 32-bit (x86) và 64-bit (x86-64) có ABI và bộ thanh ghi khác nhau — cần chú ý khi phân tích bằng file hoặc readelf -h để biết đang làm việc với kiến trúc nào.
-2. Kiến trúc x86-64
-x86-64 (hay AMD64) là kiến trúc CPU 64-bit, mở rộng từ x86 32-bit. Một số điểm cốt lõi:
+## - Các thành phần chính của CPU
 
-CPU thực thi lệnh máy (machine code) tuần tự, lệnh được nạp từ vùng nhớ text (code segment).
-Dữ liệu được thao tác qua các thanh ghi (registers) — bộ nhớ siêu nhanh nằm ngay trong CPU.
-Có 16 thanh ghi đa dụng 64-bit: rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, r8, r9, r10, r11, r12, r13, r14, r15.
-Ngoài ra còn rip (instruction pointer — trỏ tới lệnh tiếp theo sẽ thực thi) và rflags (cờ trạng thái: zero flag, carry flag, sign flag...).
-Cách chia nhỏ một thanh ghi (ví dụ với rax)
-Tên	Độ rộng	Ý nghĩa
-rax	64-bit	Toàn bộ thanh ghi
-eax	32-bit	32 bit thấp của rax
-ax	16-bit	16 bit thấp của eax
-ah	8-bit	Byte cao của ax
-al	8-bit	Byte thấp của ax
-Lưu ý quan trọng: khi ghi vào eax (32-bit), CPU tự động zero-extend — xóa toàn bộ 32 bit cao của rax. Nhưng khi ghi vào ax hoặc al, phần cao hơn giữ nguyên (không bị xóa).
+- Control Unit (CU): điều phối, giải mã lệnh, quyết định lệnh tiếp theo cần lấy từ đâu (dựa vào rip).
 
-Vai trò thường dùng của một số thanh ghi
-rax: thường chứa giá trị trả về của hàm, và trong syscall là số hiệu syscall.
-rdi, rsi, rdx, rcx, r8, r9: chứa 6 tham số đầu tiên khi gọi hàm (System V ABI).
-rbp: base pointer — trỏ tới đáy của stack frame hiện tại.
-rsp: stack pointer — luôn trỏ tới đỉnh (top) của stack.
-rip: instruction pointer — đây là mục tiêu chính khi khai thác lỗi (control rip = kiểm soát luồng thực thi chương trình).
-3. Calling Convention (System V AMD64 ABI — dùng trên Linux)
-Khi một hàm được gọi (call), quy ước sau được áp dụng:
+- ALU (Arithmetic Logic Unit): thực hiện các phép toán số học (cộng, trừ...) và logic (AND, OR, XOR, so sánh...).
+- Registers: bộ nhớ siêu nhanh ngay trong CPU, dùng để chứa toán hạng, kết quả tạm, con trỏ (xem chi tiết ở phần 2).
+- Cache (L1/L2/L3): bộ nhớ đệm giữa CPU và RAM, giúp tăng tốc truy cập dữ liệu hay dùng lại.
+## - Chu trình Fetch–Decode–Execute
+### - Mọi lệnh máy đều được CPU xử lý qua 3 bước lặp lại liên tục:
 
-Tham số truyền theo thứ tự: rdi, rsi, rdx, rcx, r8, r9. Nếu nhiều hơn 6 tham số, các tham số dư được đẩy lên stack.
-Giá trị trả về nằm ở rax (nếu là số nguyên/con trỏ).
-Khi gọi hàm bằng lệnh call, địa chỉ trở về (return address) — tức địa chỉ lệnh ngay sau call — được tự động đẩy vào stack.
-Hàm kết thúc bằng ret, lệnh này pop giá trị trên đỉnh stack ra và nhảy (jmp) tới đó — đây chính là cơ chế mà buffer overflow lợi dụng để chiếm quyền điều khiển rip.
-Thanh ghi nào được callee lưu lại (callee-saved) và caller lưu lại (caller-saved)?
-Callee-saved (hàm được gọi phải bảo toàn giá trị): rbx, rbp, r12, r13, r14, r15.
-Caller-saved (hàm gọi phải tự lưu nếu cần dùng lại sau khi gọi): rax, rcx, rdx, rsi, rdi, r8-r11.
-Ví dụ prologue/epilogue của một hàm điển hình
-push rbp        ; lưu rbp cũ của caller
-mov  rbp, rsp   ; thiết lập rbp mới = đỉnh stack hiện tại
-sub  rsp, 0x20  ; cấp phát local variables (32 byte)
-; ... thân hàm ...
-leave           ; tương đương: mov rsp, rbp; pop rbp
-ret             ; pop return address vào rip
-4. Memory Layout của một chương trình
-Khi chương trình chạy, không gian địa chỉ ảo (virtual address space) của nó được chia thành các vùng, thường sắp theo thứ tự địa chỉ thấp → cao như sau:
++ Fetch: lấy lệnh tại địa chỉ rip đang trỏ tới, từ bộ nhớ.
++ Decode: giải mã xem đây là lệnh gì (mov, add, jmp...) và toán hạng là gì.
++ Execute: thực thi lệnh đó (qua ALU nếu là phép toán, qua CU nếu là điều khiển luồng...), rồi cập nhật rip trỏ tới lệnh tiếp theo (hoặc nhảy tới địa chỉ khác nếu là lệnh jmp/call/ret).
+## - Memory Hierarchy (phân cấp bộ nhớ)
+### - Thứ tự từ Nhanh / Nhỏ / Đắt đến Chậm / Lớn / Rẻ
 
-Địa chỉ cao  ┌─────────────────────┐
-             │        Stack        │  ← local variables, return address
-             │          ↓          │     (mọc xuống địa chỉ thấp)
-             │                     │
-             │  (khoảng trống)     │
-             │                     │
-             │          ↑          │
-             │         Heap        │  ← malloc/new cấp phát
-             ├─────────────────────┤
-             │   BSS (biến chưa    │  ← global/static chưa khởi tạo
-             │   khởi tạo = 0)     │
-             ├─────────────────────┤
-             │   Data (biến đã     │  ← global/static đã khởi tạo
-             │   khởi tạo)         │
-             ├─────────────────────┤
-Địa chỉ thấp │   Text (code)       │  ← mã máy của chương trình (read-only)
-             └─────────────────────┘
-Text: chứa mã máy, thường chỉ có quyền đọc + thực thi (r-x), không ghi được.
-Data/BSS: biến toàn cục và static.
-Heap: cấp phát động (malloc, new), mọc từ địa chỉ thấp lên cao.
-Stack: nơi lưu local variable, tham số, return address; mọc từ địa chỉ cao xuống thấp.
-Giữa heap và stack có một vùng trống lớn, và còn có thêm vùng cho shared libraries (libc.so...) thường nằm gần đỉnh không gian địa chỉ hoặc ở vị trí ngẫu nhiên nếu bật ASLR (Address Space Layout Randomization).
-Hiểu memory layout là nền tảng bắt buộc để hiểu các lỗi như buffer overflow (ghi đè dữ liệu trên stack), heap overflow, use-after-free...
+  <img width="917" height="85" alt="image" src="https://github.com/user-attachments/assets/2f0eaf9d-9b9d-46d7-bef9-124e406e1546" />
 
-5. Bit, Byte và Endianness
-Bit: đơn vị nhỏ nhất, giá trị 0 hoặc 1.
-Byte: 8 bit, biểu diễn được giá trị từ 0–255 (0x00–0xFF).
-MSB (Most Significant Bit/Byte): bit/byte có trọng số lớn nhất (thường ở "bên trái" khi viết ra giấy).
-LSB (Least Significant Bit/Byte): bit/byte có trọng số nhỏ nhất.
-Endianness — cách sắp xếp byte trong bộ nhớ
+
+=> Hiểu phân cấp này giúp giải thích lý do truy cập Register/Stack (đã nằm gần CPU, thường trong Cache) lại nhanh hơn nhiều so với việc truy cập Heap lớn hay đọc file trên đĩa.
+
+
+
+## - Kiến Trúc 32-bit vs 64-bit
+ - Khái niệm: Con số "32-bit" hay "64-bit" thường chỉ độ rộng thanh ghi và độ rộng bus địa chỉ của CPU.
+ - Không gian địa chỉ: CPU 64-bit có thể địa chỉ hóa không gian nhớ lớn hơn rất nhiều ($2^{64}$ so với $2^{32}$ của 32-bit), các thanh ghi đa dụng rộng 64-bit thay vì 32-bit.
+ - Phân tích Binary trên Linux: Các binary 32-bit (x86) và 64-bit (x86-64) có ABI và bộ thanh ghi khác nhau — cần chú ý khi phân tích bằng lệnh file hoặc readelf -h.
+# 2. Kiến trúc x86-64
+ - x86-64 (hay AMD64) là kiến trúc CPU 64-bit, mở rộng từ x86 32-bit. Một số điểm cốt lõi:
+
+- CPU thực thi lệnh máy (machine code) tuần tự, lệnh được nạp từ vùng nhớ text (code segment).
+- Dữ liệu được thao tác qua các thanh ghi (registers) — bộ nhớ siêu nhanh nằm ngay trong CPU.
+ - Có 16 thanh ghi đa dụng 64-bit: rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, r8, r9, r10, r11, r12, r13, r14, r15.
+ - Ngoài ra còn rip (instruction pointer — trỏ tới lệnh tiếp theo sẽ thực thi) và rflags (cờ trạng thái: zero flag, carry flag, sign flag...).
+## - Cách chia nhỏ một thanh ghi (ví dụ với rax)
+
+<img width="727" height="162" alt="image" src="https://github.com/user-attachments/assets/195f3f9e-7c14-400f-b99f-4f7d21abf411" />
+
+<img width="1028" height="485" alt="image" src="https://github.com/user-attachments/assets/4df82a67-6b31-4e52-a9d5-5983aefb7e7a" />
+
+### ** Lưu ý quan trọng: khi ghi vào eax (32-bit), CPU tự động zero-extend — xóa toàn bộ 32 bit cao của rax. Nhưng khi ghi vào ax hoặc al, phần cao hơn giữ nguyên (không bị xóa).
+
+## - Vai trò thường dùng của một số thanh ghi
+- rax: thường chứa giá trị trả về của hàm, và trong syscall là số hiệu syscall.
+ - rdi, rsi, rdx, rcx, r8, r9: chứa 6 tham số đầu tiên khi gọi hàm (System V ABI).
+ - rbp: base pointer — trỏ tới đáy của stack frame hiện tại.
+ - rsp: stack pointer — luôn trỏ tới đỉnh (top) của stack.
+ - rip: instruction pointer — đây là mục tiêu chính khi khai thác lỗi (control rip = kiểm soát luồng thực thi chương trình).
+# 3. Calling Convention (System V AMD64 ABI — dùng trên Linux)
+## - Khi một hàm được gọi thì :
+
+- Tham số truyền theo thứ tự: rdi, rsi, rdx, rcx, r8, r9. Nếu nhiều hơn 6 tham số, các tham số dư được đẩy lên stack.
+- Giá trị trả về nằm ở rax (nếu là số nguyên/con trỏ).
+- Khi gọi hàm bằng lệnh call, địa chỉ trở về (return address) — tức địa chỉ lệnh ngay sau call — được tự động đẩy vào stack.
+- Hàm kết thúc bằng ret, lệnh này pop giá trị trên đỉnh stack ra và nhảy (jmp) tới đó — đây chính là cơ chế mà buffer overflow lợi dụng để chiếm quyền điều khiển rip.
+
+#### - Phân loại thanh ghi
+
+<img width="1020" height="317" alt="image" src="https://github.com/user-attachments/assets/d02db622-387f-48a5-a7fa-75ae2d9ede6f" />
+
+#### * Ví dụ prologue/epilogue của một hàm điển hình
+<img width="795" height="337" alt="image" src="https://github.com/user-attachments/assets/25d1938d-e387-48ec-9e1e-a8aafee1c078" />
+
+# 4. Memory Layout của một chương trình
+### - Khi chương trình chạy, không gian địa chỉ ảo của nó được chia thành các vùng, thường sắp theo thứ tự địa chỉ thấp → cao như sau:
+<img width="577" height="340" alt="image" src="https://github.com/user-attachments/assets/2cd22790-259f-4341-862f-7ae4c54f1a8f" />
+
+         
+- Text: chứa mã máy, thường chỉ có quyền đọc + thực thi (r-x), không ghi được.
+- Data/BSS: biến toàn cục và static.
+- Heap: cấp phát động (malloc, new), mọc từ địa chỉ thấp lên cao.
+- Stack: nơi lưu local variable, tham số, return address; mọc từ địa chỉ cao xuống thấp.
+- Giữa heap và stack có một vùng trống lớn, và còn có thêm vùng cho shared libraries (libc.so...) thường nằm gần đỉnh không gian địa chỉ hoặc ở vị trí ngẫu nhiên nếu bật ASLR (Address Space Layout Randomization).
+### =>> Hiểu memory layout là nền tảng bắt buộc để hiểu các lỗi như buffer overflow (ghi đè dữ liệu trên stack), heap overflow, use-after-free...
+
+# 5. Bit, Byte và Endianness
+ - Bit: đơn vị nhỏ nhất, giá trị 0 hoặc 1.
+ - Byte: 8 bit, biểu diễn được giá trị từ 0–255 (0x00–0xFF).
+ - MSB (Most Significant Bit/Byte): bit/byte có trọng số lớn nhất (thường ở "bên trái" khi viết ra giấy).
+-  LSB (Least Significant Bit/Byte): bit/byte có trọng số nhỏ nhất.
+ - Endianness — cách sắp xếp byte trong bộ nhớ
 Giả sử ta có giá trị 4-byte: 0x12345678 (viết theo cách con người đọc, MSB trước).
 
 Little-endian (x86/x86-64 dùng cái này): byte có trọng số thấp nhất được lưu ở địa chỉ thấp nhất.
