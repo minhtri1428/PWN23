@@ -1,7 +1,7 @@
 # 1. Kiến trúc máy tính tổng quát
 
 
-## Mô hình von Neumann
+## - Mô hình von Neumann
 
 <img width="782" height="567" alt="image" src="https://github.com/user-attachments/assets/a8d70ea6-2476-42b8-b0d5-911ae0cc7042" />
 
@@ -63,166 +63,78 @@
 - Khi gọi hàm bằng lệnh call, địa chỉ trở về (return address) — tức địa chỉ lệnh ngay sau call — được tự động đẩy vào stack.
 - Hàm kết thúc bằng ret, lệnh này pop giá trị trên đỉnh stack ra và nhảy (jmp) tới đó — đây chính là cơ chế mà buffer overflow lợi dụng để chiếm quyền điều khiển rip.
 
-#### - Phân loại thanh ghi
+## - Phân loại thanh ghi
 
 <img width="1020" height="317" alt="image" src="https://github.com/user-attachments/assets/d02db622-387f-48a5-a7fa-75ae2d9ede6f" />
 
-#### * Ví dụ prologue/epilogue của một hàm điển hình
+## * Ví dụ prologue/epilogue của một hàm điển hình
 <img width="795" height="337" alt="image" src="https://github.com/user-attachments/assets/25d1938d-e387-48ec-9e1e-a8aafee1c078" />
 
 # 4. Memory Layout của một chương trình
 ### - Khi chương trình chạy, không gian địa chỉ ảo của nó được chia thành các vùng, thường sắp theo thứ tự địa chỉ thấp → cao như sau:
 <img width="577" height="340" alt="image" src="https://github.com/user-attachments/assets/2cd22790-259f-4341-862f-7ae4c54f1a8f" />
-
-         
+       
 - Text: chứa mã máy, thường chỉ có quyền đọc + thực thi (r-x), không ghi được.
 - Data/BSS: biến toàn cục và static.
 - Heap: cấp phát động (malloc, new), mọc từ địa chỉ thấp lên cao.
 - Stack: nơi lưu local variable, tham số, return address; mọc từ địa chỉ cao xuống thấp.
 - Giữa heap và stack có một vùng trống lớn, và còn có thêm vùng cho shared libraries (libc.so...) thường nằm gần đỉnh không gian địa chỉ hoặc ở vị trí ngẫu nhiên nếu bật ASLR (Address Space Layout Randomization).
-### =>> Hiểu memory layout là nền tảng bắt buộc để hiểu các lỗi như buffer overflow (ghi đè dữ liệu trên stack), heap overflow, use-after-free...
+### =>> Memory layout là nền tảng bắt buộc để hiểu các lỗi như buffer overflow (ghi đè dữ liệu trên stack), heap overflow, use-after-free...
 
 # 5. Bit, Byte và Endianness
  - Bit: đơn vị nhỏ nhất, giá trị 0 hoặc 1.
  - Byte: 8 bit, biểu diễn được giá trị từ 0–255 (0x00–0xFF).
- - MSB (Most Significant Bit/Byte): bit/byte có trọng số lớn nhất (thường ở "bên trái" khi viết ra giấy).
+ - MSB (Most Significant Bit/Byte): bit/byte có trọng số lớn nhất.
 -  LSB (Least Significant Bit/Byte): bit/byte có trọng số nhỏ nhất.
- - Endianness — cách sắp xếp byte trong bộ nhớ
-Giả sử ta có giá trị 4-byte: 0x12345678 (viết theo cách con người đọc, MSB trước).
+ ## - Endianness — cách sắp xếp byte trong bộ nhớ
+- Giả sử ta có giá trị 4-byte: 0x12345678 (MBS=12 , LBS=78).
 
-Little-endian (x86/x86-64 dùng cái này): byte có trọng số thấp nhất được lưu ở địa chỉ thấp nhất.
+### - Little-endian (x86/x86-64): byte có trọng số thấp nhất được lưu ở địa chỉ thấp nhất.
+<img width="537" height="86" alt="image" src="https://github.com/user-attachments/assets/f7ee6eb8-c6a7-4138-a770-07f299bc7e30" />
 
-Địa chỉ:   0x00  0x01  0x02  0x03
-Giá trị:   0x78  0x56  0x34  0x12
-Big-endian (dùng trong một số kiến trúc mạng, network byte order): byte có trọng số cao nhất lưu ở địa chỉ thấp nhất.
-
-Địa chỉ:   0x00  0x01  0x02  0x03
-Giá trị:   0x12  0x34  0x56  0x78
-Mẹo nhớ: x86 = little-endian → khi dump memory bằng gdb/xxd, nếu thấy chuỗi byte trông "ngược", đó là bình thường — cần đảo ngược lại để đọc ra giá trị số thật.
-
-Ví dụ thực hành: chuỗi byte 41 41 41 41 42 42 42 42 trên stack (little-endian), nếu đọc thành 2 giá trị 4-byte, ta được 0x41414141 và 0x42424242 — đây là kiểu dữ liệu rất hay gặp khi debug buffer overflow (do 'A' = 0x41, 'B' = 0x42).
-
-6. Stack
-Stack là vùng nhớ hoạt động theo cơ chế LIFO (Last In, First Out).
-
-Push và Pop
-push <giá trị>:
-Giảm rsp đi 8 (vì mỗi lần push/pop trên x86-64 làm việc với 8 byte).
-Ghi giá trị vào địa chỉ [rsp] mới.
-pop <thanh ghi>:
-Đọc giá trị tại [rsp].
-Tăng rsp lên 8.
-Trước push:        Sau push rax (rax = 0x41):
-rsp → [ ... ]       [ ... ]
-                    rsp → [ 0x41 ]   ← rsp giảm, giá trị mới nằm đây
-Stack frame của một hàm
-Mỗi khi một hàm được gọi, một "khung" (frame) mới được tạo trên stack, thường chứa:
-
-Return address (do call tự động push)
-Saved rbp cũa caller (do push rbp trong prologue)
-Local variables (cấp phát bằng sub rsp, N)
-Đôi khi có thêm buffer canary (stack protector) để chống overflow
-Địa chỉ cao
-┌───────────────────┐
-│  Return address    │  ← do lệnh `call` push vào
-├───────────────────┤
-│  Saved rbp (old)   │  ← do prologue push rbp
-├───────────────────┤ ← rbp trỏ vào đây
-│  Local variable 1  │
-├───────────────────┤
-│  Local variable 2  │
-├───────────────────┤ ← rsp trỏ vào đây (đỉnh stack hiện tại)
-Địa chỉ thấp
-Mối liên hệ giữa Stack, Memory và Register
-rsp và rbp là thanh ghi nhưng giá trị của chúng là địa chỉ bộ nhớ trỏ vào vùng stack.
-Khi một buffer local (ví dụ char buf[16]) bị ghi tràn (overflow) mà không kiểm tra độ dài, dữ liệu ghi thừa sẽ đè lên saved rbp, rồi đè lên return address. Nếu kẻ tấn công kiểm soát được return address, họ có thể điều khiển rip sau khi hàm ret — đây chính là ý tưởng cốt lõi của stack buffer overflow.
-7. Hex và Binary
-Bảng quy đổi nhanh
-Decimal	Binary	Hex
-0	0000	0x0
-5	0101	0x5
-10	1010	0xA
-15	1111	0xF
-255	11111111	0xFF
-Cách đổi Hex ↔ Binary nhanh
-Mỗi ký tự hex tương ứng chính xác 4 bit → ghép trực tiếp, không cần qua decimal.
-
-Ví dụ: 0xA3 → A = 1010, 3 = 0011 → 10100011.
-
-Công cụ thực hành trên Linux
-python3 -c "print(hex(1234))"        # decimal -> hex
-python3 -c "print(int('1F', 16))"    # hex -> decimal
-python3 -c "print(bin(200))"         # decimal -> binary
-echo -n "AAAA" | xxd                 # xem giá trị hex/ascii của chuỗi
-printf '%x\n' 255                    # in ra hex
-Thao tác dữ liệu dạng bytes trong Python (rất hay dùng khi viết exploit)
-import struct
-
-# Đóng gói số nguyên thành little-endian 4 byte
-data = struct.pack("<I", 0x41424344)   # b'DCBA'
-
-# Ngược lại: unpack
-value = struct.unpack("<I", data)[0]
-
-# pwntools cung cấp sẵn hàm tiện lợi hơn
-from pwn import p32, p64, u32, u64
-p64(0x4141414141414141)   # pack 8 byte little-endian
-8. Linux cơ bản cần biết
-Lệnh	Công dụng
-ls -la	Liệt kê file, gồm cả file ẩn và permission
-cd, pwd	Di chuyển và xem thư mục hiện tại
-cat, less	Xem nội dung file
-chmod +x file	Cấp quyền thực thi cho file
-file <binary>	Xác định loại file (ELF 64-bit, PIE, stripped...)
-strings <binary>	In ra các chuỗi ký tự in được trong file — hữu ích để tìm hint
-objdump -d -M intel binary	Disassemble file, xem mã Assembly (cú pháp Intel)
-readelf -h/-S binary	Xem header, section của file ELF
-gdb ./binary	Debugger — công cụ trung tâm để phân tích/khai thác binary
-checksec ./binary	(cần cài pwntools) Kiểm tra các cơ chế bảo vệ: NX, PIE, Canary, RELRO
-ltrace, strace	Theo dõi lời gọi hàm thư viện / syscall của chương trình khi chạy
-Một số lệnh gdb hay dùng khi mới bắt đầu
-break main          # đặt breakpoint tại hàm main
-run                  # chạy chương trình
-info registers       # xem giá trị toàn bộ thanh ghi
-x/20xg $rsp          # xem 20 giá trị 8-byte (g=giant) tại $rsp dạng hex
-disassemble main     # xem assembly của hàm main
-stepi / nexti        # chạy từng lệnh assembly một
-9. Assembly cơ bản (x86-64, cú pháp Intel)
-Trên Linux, gdb và objdump mặc định dùng cú pháp AT&T. Có thể chuyển sang Intel (dễ đọc hơn cho người mới) bằng:
-
-Trong gdb: set disassembly-flavor intel
-Với objdump: thêm cờ -M intel
-Các lệnh (instruction) cơ bản
-Lệnh	Ý nghĩa
-mov dst, src	Copy giá trị từ src vào dst
-push src / pop dst	Đẩy vào / lấy ra khỏi stack
-add, sub	Cộng, trừ
-cmp a, b	So sánh a và b (thực chất là a - b, chỉ set flag)
-test a, b	AND bit-wise giữa a và b, chỉ set flag
-je, jne, jg, jl	Nhảy có điều kiện (equal, not equal, greater, less) dựa theo flag sau cmp/test
-jmp addr	Nhảy không điều kiện
-call addr	Gọi hàm: push return address, nhảy tới addr
-ret	Pop giá trị từ stack vào rip, quay về caller
-lea dst, [addr]	Load địa chỉ (không phải giá trị) vào dst
-syscall	Gọi system call của kernel (Linux x86-64)
-Ví dụ đoạn Assembly đơn giản (Intel syntax)
-mov eax, 5        ; eax = 5
-add eax, 3        ; eax = eax + 3 = 8
-cmp eax, 8        ; so sánh eax với 8 -> set ZF=1 vì bằng nhau
-je  equal_label   ; nếu bằng thì nhảy tới equal_label
-Syscall trên Linux x86-64 — nền tảng để viết shellcode
-Quy ước gọi syscall (khác với calling convention của hàm bình thường!):
-
-rax = số hiệu syscall
-Tham số theo thứ tự: rdi, rsi, rdx, r10, r8, r9 (chú ý: dùng r10 thay vì rcx so với calling convention hàm thường)
-Lệnh syscall để gọi vào kernel
-Ví dụ: gọi write(1, "hi", 2) bằng Assembly thô (syscall number của write là 1):
-
-mov rax, 1        ; syscall number: write
-mov rdi, 1        ; fd = 1 (stdout)
-lea rsi, [msg]    ; địa chỉ buffer chứa dữ liệu cần in
-mov rdx, 2        ; số byte cần ghi
-syscall
-Đây chính là nền tảng để viết shellcode — đoạn mã máy nhỏ gọn (không phụ thuộc libc) mà một exploit sẽ inject và thực thi trực tiếp qua syscall.
+### - Big-endian (dùng trong một số kiến trúc mạng, network byte order): byte có trọng số cao nhất lưu ở địa chỉ thấp nhất.
+<img width="513" height="76" alt="image" src="https://github.com/user-attachments/assets/05f256fc-c5ac-4545-8081-6fee2218312c" />
 
 
+#### * x86 = little-endian → khi dump memory bằng gdb/xxd, nếu thấy chuỗi byte trông "ngược", đó là bình thường — cần đảo ngược lại để đọc ra giá trị số thật.
+
+VD: chuỗi byte 41 41 41 41 42 42 42 42 trên stack (little-endian), nếu đọc thành 2 giá trị 4-byte, ta được 0x41414141 và 0x42424242 — đây là kiểu dữ liệu rất hay gặp khi debug buffer overflow (do 'A' = 0x41, 'B' = 0x42).
+
+# 6. Stack
+### - Stack là vùng nhớ hoạt động theo cơ chế LIFO (Last In, First Out).
+### - Push và Pop
+`push <giá trị>:`
+- Giảm rsp đi 8 (vì mỗi lần push/pop trên x86-64 làm việc với 8 byte).
+- Ghi giá trị vào địa chỉ [rsp] mới.
+`pop <thanh ghi>:`
+- Đọc giá trị tại [rsp].
+- Tăng rsp lên 8.
+<img width="916" height="147" alt="image" src="https://github.com/user-attachments/assets/59cea2e6-ee08-4b1b-86b1-b5a6452946dd" />
+
+## - Stack frame của một hàm
+### - Mỗi khi một hàm được gọi, một "khung" (frame) mới được tạo trên stack, thường chứa:
+
+- Return address (do call tự động push)
+- Saved rbp cũa caller (do push rbp trong prologue)
+- Local variables (cấp phát bằng sub rsp, N)
+- Đôi khi có thêm buffer canary (stack protector) để chống overflow
+<img width="1011" height="317" alt="image" src="https://github.com/user-attachments/assets/a6f6f519-8669-4bf7-b240-2fd1fa216f92" />
+
+## - Mối liên hệ giữa Stack, Memory và Register
+`rsp` và `rbp` là thanh ghi nhưng giá trị của chúng là địa chỉ bộ nhớ trỏ vào vùng stack.
+- Khi một buffer local (ví dụ char `buf[16]`) bị ghi tràn (overflow) mà không kiểm tra độ dài, dữ liệu ghi thừa sẽ đè lên saved `rbp`, rồi đè lên return address. Nếu kẻ tấn công kiểm soát được return address, họ có thể điều khiển `rip` sau khi hàm `ret` — đây chính là ý tưởng cốt lõi của stack buffer overflow.
+# 7. Hex và Binary
+### - Bảng quy đổi nhanh
+<img width="1007" height="536" alt="image" src="https://github.com/user-attachments/assets/d32f47f3-92aa-4e2e-bca5-9c512043a7d0" />
+
+
+### - Cách đổi Hex ↔ Binary nhanh
+- Mỗi ký tự hex tương ứng chính xác 4 bit → ghép trực tiếp, không cần qua decimal.
+
+`Ví dụ: 0xA3 → A = 1010, 3 = 0011 → 10100011.`
+
+### - Công cụ thực hành trên Linux
+<img width="945" height="193" alt="image" src="https://github.com/user-attachments/assets/aa8c1dee-e072-4c60-8258-2f6b5b04ef94" />
+
+### - Thao tác dữ liệu dạng bytes trong Python (rất hay dùng khi viết exploit)
+<img width="627" height="297" alt="image" src="https://github.com/user-attachments/assets/ec738481-1085-4fd6-af5c-2e42d552837a" />
