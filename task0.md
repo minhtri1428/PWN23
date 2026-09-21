@@ -81,10 +81,14 @@
 - Đôi khi có thêm buffer canary (stack protector) để chống overflow
 <img width="1011" height="317" alt="image" src="https://github.com/user-attachments/assets/a6f6f519-8669-4bf7-b240-2fd1fa216f92" />
 
+* Ví dụ về function frame
+<img width="1168" height="626" alt="image" src="https://github.com/user-attachments/assets/774f43f1-c5b4-4366-b90f-52fec3e40d68" />
+
+
 ## - Mối liên hệ giữa Stack, Memory và Register
 `rsp` và `rbp` là thanh ghi nhưng giá trị của chúng là địa chỉ bộ nhớ trỏ vào vùng stack.
 - Khi một buffer local (ví dụ char `buf[16]`) bị ghi tràn (overflow) mà không kiểm tra độ dài, dữ liệu ghi thừa sẽ đè lên saved `rbp`, rồi đè lên return address. Nếu kẻ tấn công kiểm soát được return address, họ có thể điều khiển `rip` sau khi hàm `ret` — đây chính là ý tưởng cốt lõi của stack buffer overflow.
-# . Bit, Byte và Endianness
+# 6. Bit, Byte và Endianness
  - Bit: đơn vị nhỏ nhất, giá trị 0 hoặc 1.
  - Byte: 8 bit, biểu diễn được giá trị từ 0–255 (0x00–0xFF).
  - MSB (Most Significant Bit/Byte): bit/byte có trọng số lớn nhất.
