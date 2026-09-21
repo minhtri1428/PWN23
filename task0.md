@@ -39,12 +39,12 @@
  - rbp: base pointer — trỏ tới đáy của stack frame hiện tại.
  - rsp: stack pointer — luôn trỏ tới đỉnh (top) của stack.
  - rip: instruction pointer — đây là mục tiêu chính khi khai thác lỗi (control rip = kiểm soát luồng thực thi chương trình).
-# 3. Calling Convention (System V AMD64 ABI — dùng trên Linux)
+# 3. Calling Convention 
 ## - Khi một hàm được gọi thì :
 - Tham số truyền theo thứ tự: rdi, rsi, rdx, rcx, r8, r9. Nếu nhiều hơn 6 tham số, các tham số dư được đẩy lên stack.
 - Giá trị trả về nằm ở rax (nếu là số nguyên/con trỏ).
 - Khi gọi hàm bằng lệnh call, địa chỉ trở về (return address) — tức địa chỉ lệnh ngay sau call — được tự động đẩy vào stack.
-- Hàm kết thúc bằng ret, lệnh này pop giá trị trên đỉnh stack ra và nhảy (jmp) tới đó — đây chính là cơ chế mà buffer overflow lợi dụng để chiếm quyền điều khiển rip.
+- Lệnh ret: lệnh này pop giá trị trên đỉnh stack ra và nhảy (jmp) tới đó — đây chính là cơ chế mà buffer overflow lợi dụng để chiếm quyền điều khiển rip.
 ##  Phân loại thanh ghi
 <img width="1020" height="317" alt="image" src="https://github.com/user-attachments/assets/d02db622-387f-48a5-a7fa-75ae2d9ede6f" />
 
@@ -64,10 +64,11 @@
 ### =>> Memory layout là nền tảng bắt buộc để hiểu các lỗi như buffer overflow (ghi đè dữ liệu trên stack), heap overflow, use-after-free...
 # 5. Stack
 ### - Stack là vùng nhớ hoạt động theo cơ chế LIFO (Last In, First Out).
-### - Push và Pop
+### - Thao tác Push và Pop
 `push <giá trị>:`
 - Giảm rsp đi 8 (vì mỗi lần push/pop trên x86-64 làm việc với 8 byte).
 - Ghi giá trị vào địa chỉ [rsp] mới.
+  
 `pop <thanh ghi>:`
 - Đọc giá trị tại [rsp].
 - Tăng rsp lên 8.
@@ -86,7 +87,7 @@
 
 
 ## - Mối liên hệ giữa Stack, Memory và Register
-`rsp` và `rbp` là thanh ghi nhưng giá trị của chúng là địa chỉ bộ nhớ trỏ vào vùng stack.
+- `rsp` và `rbp` là thanh ghi nhưng giá trị của chúng là địa chỉ bộ nhớ trỏ vào vùng stack.
 - Khi một buffer local (ví dụ char `buf[16]`) bị ghi tràn (overflow) mà không kiểm tra độ dài, dữ liệu ghi thừa sẽ đè lên saved `rbp`, rồi đè lên return address. Nếu kẻ tấn công kiểm soát được return address, họ có thể điều khiển `rip` sau khi hàm `ret` — đây chính là ý tưởng cốt lõi của stack buffer overflow.
 # 6. Bit, Byte và Endianness
  - Bit: đơn vị nhỏ nhất, giá trị 0 hoặc 1.
@@ -95,10 +96,10 @@
  - LSB (Least Significant Bit/Byte): bit/byte có trọng số nhỏ nhất.
  ## - Endianness — cách sắp xếp byte trong bộ nhớ
 - Giả sử ta có giá trị 4-byte: 0x12345678 (MBS=12 , LBS=78).
-### - Little-endian (x86/x86-64): byte có trọng số thấp nhất được lưu ở địa chỉ thấp nhất.
+- Little-endian (x86/x86-64): byte có trọng số thấp nhất được lưu ở địa chỉ thấp nhất.
 <img width="537" height="86" alt="image" src="https://github.com/user-attachments/assets/f7ee6eb8-c6a7-4138-a770-07f299bc7e30" />
 
-### - Big-endian (dùng trong một số kiến trúc mạng, network byte order): byte có trọng số cao nhất lưu ở địa chỉ thấp nhất.
+- Big-endian (dùng trong một số kiến trúc mạng, network byte order): byte có trọng số cao nhất lưu ở địa chỉ thấp nhất.
 <img width="513" height="76" alt="image" src="https://github.com/user-attachments/assets/05f256fc-c5ac-4545-8081-6fee2218312c" />
 
 #### * x86 = little-endian → khi dump memory bằng gdb/xxd, nếu thấy chuỗi byte trông "ngược", đó là bình thường — cần đảo ngược lại để đọc ra giá trị số thật.
