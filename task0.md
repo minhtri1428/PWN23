@@ -9,10 +9,9 @@
 - Registers: bộ nhớ siêu nhanh ngay trong CPU, dùng để chứa toán hạng, kết quả tạm, con trỏ (xem chi tiết ở phần 2).
 - Cache (L1/L2/L3): bộ nhớ đệm giữa CPU và RAM, giúp tăng tốc truy cập dữ liệu hay dùng lại.
 ## - Chu trình Fetch–Decode–Execute
-### - Mọi lệnh máy đều được CPU xử lý qua 3 bước lặp lại liên tục:
-+ Fetch: lấy lệnh tại địa chỉ rip đang trỏ tới, từ bộ nhớ.
-+ Decode: giải mã xem đây là lệnh gì (mov, add, jmp...) và toán hạng là gì.
-+ Execute: thực thi lệnh đó (qua ALU nếu là phép toán, qua CU nếu là điều khiển luồng...), rồi cập nhật rip trỏ tới lệnh tiếp theo (hoặc nhảy tới địa chỉ khác nếu là lệnh jmp/call/ret).
+- Fetch: CU đặt địa chỉ bộ nhớ của instruction vào address bus. Sau đó, CU gửi một lệnh dọc theo control bus yêu cầu bộ nhớ tìm các lệnh đã được lưu ,sau khi tìm được lệnh bộ nhớ sẽ sao chép lệnh lên data bus và lên register trên CPU để tiến hành Decode
+- Decode: CPU giải mã nội dung nhận được
+- Excute: CPU gửi lệnh đi dưới dạng tập hợp các tín hiệu điều khiển đến các thành phần máy tính tương ứng , nếu là số học hoặc logic sẽ đc đưa đến ALU 
 ## - Memory Hierarchy (phân cấp bộ nhớ)
 #### - Thứ tự từ Nhanh / Nhỏ / Đắt đến Chậm / Lớn / Rẻ
   <img width="917" height="85" alt="image" src="https://github.com/user-attachments/assets/2f0eaf9d-9b9d-46d7-bef9-124e406e1546" />
