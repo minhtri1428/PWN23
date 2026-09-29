@@ -41,6 +41,7 @@ Mọi lệnh máy đều được CPU xử lý qua 3 bước lặp lại liên t
  - rsp: stack pointer — luôn trỏ tới đỉnh (top) của stack.
  - rip: instruction pointer — đây là mục tiêu chính khi khai thác lỗi (control rip = kiểm soát luồng thực thi chương trình).
 # 3. Calling Convention 
+- Là tập hợp các quy tắc quy định cách một hàm được gọi và cách nó trả về kết quả ở mức máy (assembly/binary). Nó giúp code do người gọi (caller) và code được gọi (callee) "hiểu nhau", kể cả khi được biên dịch riêng biệt.
 ## - Khi một hàm được gọi thì :
 - Tham số truyền theo thứ tự: rdi, rsi, rdx, rcx, r8, r9. Nếu nhiều hơn 6 tham số, các tham số dư được đẩy lên stack.
 - Giá trị trả về nằm ở rax (nếu là số nguyên/con trỏ).
