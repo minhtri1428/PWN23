@@ -122,8 +122,38 @@ VD: chuỗi byte 41 41 41 41 42 42 42 42 trên stack (little-endian), nếu đ�
 
 ### - Bảng format code hay dùng:
 <img width="768" height="337" alt="image" src="https://github.com/user-attachments/assets/0d8ceb63-4ec6-4e80-9886-51652025817c" />
+
 # 8. Một số lệnh linux cơ bản:
 <img width="842" height="671" alt="image" src="https://github.com/user-attachments/assets/f199c54b-b7a2-4457-a9e9-2a5197bf2614" />
+
+## - Một số lệnh gdb hay dùng:
+<img width="730" height="180" alt="image" src="https://github.com/user-attachments/assets/cc840ca4-fc29-48ab-8c5e-fb52be723659" />
+
+# 9.Assembly 
+Trên Linux, gdb và objdump mặc định dùng cú pháp AT&T. Có thể chuyển sang Intel (dễ đọc hơn cho người mới) bằng:
+- Trong gdb: set disassembly-flavor intel
+- Với objdump: thêm cờ -M intel
+## - Instruction cơ bản:
+<img width="842" height="657" alt="image" src="https://github.com/user-attachments/assets/18a161e2-2ce5-4175-a42b-8c9a0189f134" />
+
+- Ví dụ đoạn Assembly đơn giản
+  <img width="612" height="111" alt="image" src="https://github.com/user-attachments/assets/8e2590e2-67b1-4229-be0e-002a508f239f" />
+
+## - Syscall trên Linux x86-64 — nền tảng để viết shellcode
+Quy ước gọi syscall:
+- rax = số hiệu syscall
+- Tham số theo thứ tự: rdi, rsi, rdx, r10, r8, r9 (chú ý: dùng r10 thay vì rcx so với calling convention hàm thường)
+- Lệnh syscall để gọi vào kernel
+VD: Gọi write(1, "hi", 2) bằng Assembly thô (syscall number của write là 1):
+<img width="607" height="153" alt="image" src="https://github.com/user-attachments/assets/8191da0a-25cf-40dd-8b0c-f6276eb12bff" />
+
+=>> Đây chính là nền tảng để viết shellcode — đoạn mã máy nhỏ gọn (không phụ thuộc libc) mà một exploit sẽ inject và thực thi trực tiếp qua syscall.
+
+
+
+  
+
+
 
 
 
