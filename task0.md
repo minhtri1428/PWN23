@@ -9,6 +9,7 @@
 - Registers: bộ nhớ siêu nhanh ngay trong CPU, dùng để chứa toán hạng, kết quả tạm, con trỏ (xem chi tiết ở phần 2).
 - Cache (L1/L2/L3): bộ nhớ đệm giữa CPU và RAM, giúp tăng tốc truy cập dữ liệu hay dùng lại.
 ## - Chu trình Fetch–Decode–Execute
+Mọi lệnh máy đều được CPU xử lý qua 3 bước lặp lại liên tục:
 - Fetch: CU đặt địa chỉ bộ nhớ của instruction vào address bus. Sau đó, CU gửi một lệnh dọc theo control bus yêu cầu bộ nhớ tìm các lệnh đã được lưu ,sau khi tìm được lệnh bộ nhớ sẽ sao chép lệnh lên data bus và lên register trên CPU để tiến hành Decode
 - Decode: CPU giải mã nội dung nhận được
 - Excute: CPU gửi lệnh đi dưới dạng tập hợp các tín hiệu điều khiển đến các thành phần máy tính tương ứng , nếu là số học hoặc logic sẽ đc đưa đến ALU 
@@ -115,6 +116,21 @@ VD: chuỗi byte 41 41 41 41 42 42 42 42 trên stack (little-endian), nếu đ�
 <img width="945" height="193" alt="image" src="https://github.com/user-attachments/assets/aa8c1dee-e072-4c60-8258-2f6b5b04ef94" />
 
 ### - Thao tác dữ liệu dạng bytes trong Python (rất hay dùng khi viết exploit)
-<img width="627" height="297" alt="image" src="https://github.com/user-attachments/assets/ec738481-1085-4fd6-af5c-2e42d552837a" />
+- Python lưu số nguyên trừu tượng, không có độ dài cố định. Nhưng khi giao tiếp với chương trình khác (qua socket, stdin, ghi file binary...), dữ liệu phải ở dạng chuỗi byte thô với độ dài và thứ tự byte (endianness) xác định — giống hệt cách nó nằm trong bộ nhớ máy tính. Đây là lý do cần "pack" (đóng gói) số nguyên thành bytes trước khi gửi đi.
+### - Kiểu bytes cơ bản:
+<img width="597" height="107" alt="image" src="https://github.com/user-attachments/assets/749aaa05-1741-4bfc-9b79-a7af5d2475d9" />
+
+### - Bảng format code hay dùng:
+<img width="768" height="337" alt="image" src="https://github.com/user-attachments/assets/0d8ceb63-4ec6-4e80-9886-51652025817c" />
+# 8. Một số lệnh linux cơ bản:
+<img width="842" height="671" alt="image" src="https://github.com/user-attachments/assets/f199c54b-b7a2-4457-a9e9-2a5197bf2614" />
+
+
+
+
+
+
+
+
 
 
