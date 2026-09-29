@@ -136,8 +136,8 @@ Trên Linux, gdb và objdump mặc định dùng cú pháp AT&T. Có thể chuy�
 ## - Instruction cơ bản:
 <img width="842" height="657" alt="image" src="https://github.com/user-attachments/assets/18a161e2-2ce5-4175-a42b-8c9a0189f134" />
 
-- Ví dụ đoạn Assembly đơn giản
-  <img width="612" height="111" alt="image" src="https://github.com/user-attachments/assets/8e2590e2-67b1-4229-be0e-002a508f239f" />
+- Ví dụ đoạn Assembly đơn giản:
+<img width="612" height="111" alt="image" src="https://github.com/user-attachments/assets/8e2590e2-67b1-4229-be0e-002a508f239f" />
 
 ## - Syscall trên Linux x86-64 — nền tảng để viết shellcode
 Quy ước gọi syscall:
