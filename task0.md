@@ -116,7 +116,7 @@ VD: chuỗi byte 41 41 41 41 42 42 42 42 trên stack (little-endian), nếu đ�
 ### - Công cụ thực hành trên Linux
 <img width="945" height="193" alt="image" src="https://github.com/user-attachments/assets/aa8c1dee-e072-4c60-8258-2f6b5b04ef94" />
 
-### - Thao tác dữ liệu dạng bytes trong Python (rất hay dùng khi viết exploit)
+### - Thao tác dữ liệu dạng bytes trong Python 
 - Python lưu số nguyên trừu tượng, không có độ dài cố định. Nhưng khi giao tiếp với chương trình khác (qua socket, stdin, ghi file binary...), dữ liệu phải ở dạng chuỗi byte thô với độ dài và thứ tự byte (endianness) xác định — giống hệt cách nó nằm trong bộ nhớ máy tính. Đây là lý do cần "pack" (đóng gói) số nguyên thành bytes trước khi gửi đi.
 ### - Kiểu bytes cơ bản:
 <img width="597" height="107" alt="image" src="https://github.com/user-attachments/assets/749aaa05-1741-4bfc-9b79-a7af5d2475d9" />
