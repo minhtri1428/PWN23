@@ -135,6 +135,7 @@ VD: chuỗi byte 41 41 41 41 42 42 42 42 trên stack (little-endian), nếu đ�
 Ghép một hoặc nhiều object file, gán address cho các section, điền các chỗ còn thiếu (relocation) và tạo file thực thi (ELF) với điểm bắt đầu là `_start` 
 - Run: `./filename` 
 Hệ điều hành (loader) nạp file vào RAM, rồi CPU bắt đầu thực thi từ `_start`
+
 Trên Linux, gdb và objdump mặc định dùng cú pháp AT&T. Có thể chuyển sang Intel bằng:
 - Trong gdb: set disassembly-flavor intel
 - Với objdump: thêm cờ -M intel
