@@ -129,22 +129,44 @@ VD: chuỗi byte 41 41 41 41 42 42 42 42 trên stack (little-endian), nếu đ�
 # Assembly 
 - Là ngôn ngữ bậc thấp (gần với machine code nhất) mà con ngg còn có thể đọ và viết đc, và gần như mỗi dòng assembly ứng với đúng một lệnh của CPU.
 - Nó cho phép con ng làm việc trục tiếp vs register và memory
-### Các bước để biến file assembly thành chương trình chạy được:
+  
+Các bước để biến file assembly thành chương trình chạy được:
 - Assemble: Dịch assembly thành object file bằng lệnh `as -o filename.o filename.s` 
-- Link: `ld -o filename filename.o`
-Ghép một hoặc nhiều object file, gán address cho các section, điền các chỗ còn thiếu (relocation) và tạo file thực thi (ELF) với điểm bắt đầu là `_start` 
-- Run: `./filename` 
-Hệ điều hành (loader) nạp file vào RAM, rồi CPU bắt đầu thực thi từ `_start`
+- Link: `ld -o filename filename.o` Ghép một hoặc nhiều object file, gán address cho các section, điền các chỗ còn thiếu (relocation) và tạo file thực thi (ELF) với điểm bắt đầu là `_start` 
+- Run: `./filename`  Hệ điều hành (loader) nạp file vào RAM, rồi CPU bắt đầu thực thi từ `_start`
 
 Trên Linux, gdb và objdump mặc định dùng cú pháp AT&T. Có thể chuyển sang Intel bằng:
 - Trong gdb: set disassembly-flavor intel
 - Với objdump: thêm cờ -M intel
+
+
 ## - Instruction cơ bản:
+
 <img width="842" height="657" alt="image" src="https://github.com/user-attachments/assets/18a161e2-2ce5-4175-a42b-8c9a0189f134" />
 
-## Ví dụ đoạn Assembly đơn giản:
-<img width="612" height="111" alt="image" src="https://github.com/user-attachments/assets/8e2590e2-67b1-4229-be0e-002a508f239f" />
+## Ví dụ  lệnh `mov` :
+Hằng số → register
+`mov rax, 60`
 
+- Copy số 60 vào rax, ghi đè giá trị cũ.
+
+ Register → register
+`mov rax, rbx`
+
+- rax nhận data của rbx (ghi đè data cũ), rbx giữ nguyên.
+
+Register → memory
+`mov [address], rax`
+
+- \[ ]\ nghĩa là truy cập nội dung tại address bên trong.
+- Lệnh này ghi data của rax vào memory bắt đầu tại address.
+- Giống địa chỉ nhà: có địa chỉ rồi thì vào nhà làm việc với đồ bên trong.
+
+Memory → register
+`mov rax, [address]`
+
+- Đọc data tại address đưa vào rax.
+- Ví dụ: tại 0x02 đang chứa các byte 05 00 00 00 00 00 00 00 thì sau lệnh mov rax, [0x02], rax = 0x5
 ##  Syscall trên Linux x86-64 — nền tảng để viết shellcode
 Quy ước gọi syscall:
 - rax = số hiệu syscall
