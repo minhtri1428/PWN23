@@ -152,7 +152,6 @@ Quy ước gọi syscall:
 VD: Gọi write(1, "hi", 2) bằng Assembly thô (syscall number của write là 1):
 <img width="607" height="153" alt="image" src="https://github.com/user-attachments/assets/8191da0a-25cf-40dd-8b0c-f6276eb12bff" />
 
-=>> Đây chính là nền tảng để viết shellcode — đoạn mã máy nhỏ gọn (không phụ thuộc libc) mà một exploit sẽ inject và thực thi trực tiếp qua syscall.
 
 
 
