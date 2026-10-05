@@ -140,7 +140,7 @@ Trên Linux, gdb và objdump mặc định dùng cú pháp AT&T. Có thể chuy�
 - Với objdump: thêm cờ -M intel
 
 
-## - Instruction cơ bản:
+##  Instruction cơ bản:
 
 <img width="842" height="657" alt="image" src="https://github.com/user-attachments/assets/18a161e2-2ce5-4175-a42b-8c9a0189f134" />
 
@@ -158,7 +158,7 @@ Hằng số → register
 Register → memory
 `mov [address], rax`
 
-- \[ ]\ nghĩa là truy cập nội dung tại address bên trong.
+- \[  \] nghĩa là truy cập nội dung tại address bên trong.
 - Lệnh này ghi data của rax vào memory bắt đầu tại address.
 - Giống địa chỉ nhà: có địa chỉ rồi thì vào nhà làm việc với đồ bên trong.
 
