@@ -65,8 +65,16 @@ Mọi lệnh máy đều được CPU xử lý qua 3 bước lặp lại liên t
 - Giữa heap và stack có một vùng trống lớn, và còn có thêm vùng cho shared libraries (libc.so...) thường nằm gần đỉnh không gian địa chỉ hoặc ở vị trí ngẫu nhiên nếu bật ASLR (Address Space Layout Randomization).
 ### =>> Memory layout là nền tảng bắt buộc để hiểu các lỗi như buffer overflow (ghi đè dữ liệu trên stack), heap overflow, use-after-free...
 #  Stack
-### - Stack là vùng nhớ hoạt động theo cơ chế LIFO (Last In, First Out).
-### - Thao tác Push và Pop
+- Stack là một vùng trong RAM, được hệ điều hành cấp riêng cho mỗi tiến trình, dùng để lưu dữ liệu tạm theo nguyên tắc LIFO.
+- Stack luôn thao tác ở đỉnh thông qua 1 thanh ghi chuyên dụng (rsp)
+
+## Register rsp
+- rsp (stack pointer) luôn trỏ tới địa chỉ đỉnh stack hiện tại.
+- Trên x86-64: stack lớn dần về phía address thấp. Nghĩa là thêm dữ liệu vào stack → rsp giảm; lấy dữ liệu ra → rsp tăng.
+  <img width="857" height="302" alt="image" src="https://github.com/user-attachments/assets/27bcd725-2942-4831-889a-c996b8163375" />
+
+- rbp (base pointer) thường dùng để trỏ đáy của frame hiện tại, giúp truy cập biến cục bộ và tham số dễ hơn, không phải tính lại theo rsp mỗi khi nó thay đổi.
+## Thao tác Push và Pop
 `push <giá trị>:`
 - Giảm rsp đi 8 (vì mỗi lần push/pop trên x86-64 làm việc với 8 byte).
 - Ghi giá trị vào địa chỉ [rsp] mới.
@@ -76,20 +84,39 @@ Mọi lệnh máy đều được CPU xử lý qua 3 bước lặp lại liên t
 - Tăng rsp lên 8.
 <img width="916" height="147" alt="image" src="https://github.com/user-attachments/assets/59cea2e6-ee08-4b1b-86b1-b5a6452946dd" />
 
-##  Stack frame của một hàm
-### - Mỗi khi một hàm được gọi, một "khung" (frame) mới được tạo trên stack, thường chứa:
-- Return address (do call tự động push)
-- Saved rbp cũa caller (do push rbp trong prologue)
-- Local variables (cấp phát bằng sub rsp, N)
-- Đôi khi có thêm buffer canary (stack protector) để chống overflow
-<img width="1011" height="317" alt="image" src="https://github.com/user-attachments/assets/a6f6f519-8669-4bf7-b240-2fd1fa216f92" />
+- pop không xóa dữ liệu khỏi memory, chỉ dời rsp. Giá trị cũ vẫn còn ở đó cho tới khi bị ghi đè bởi lần push sau.
 
-* Ví dụ về function frame
-<img width="1168" height="626" alt="image" src="https://github.com/user-attachments/assets/774f43f1-c5b4-4366-b90f-52fec3e40d68" />
+## Cơ chế khi gọi hàm: call và ret
 
+`call` làm 2 việc:
+- push địa chỉ của lệnh kế tiếp (địa chỉ trả về) lên stack.
+- Nhảy rip tới địa chỉ của ham.
 
-##  Mối liên hệ giữa Stack, Memory và Register
-- `rsp` và `rbp` là thanh ghi nhưng giá trị của chúng là địa chỉ bộ nhớ trỏ vào vùng stack.
+`ret` làm ngược lại:
+- pop giá trị trên đỉnh stack ra.
+- Gán giá trị đó vào rip → nhảy về đúng chỗ đã gọi.
+
+=>> Đây là lý do call/ret luôn đi cùng nhau đúng cặp — chúng dựa hoàn toàn vào stack để biết "quay về đâu".
+
+## Stack frame 
+
+Mỗi lần một hàm được gọi, một vùng nhỏ trên stack (gọi là stack frame hay activation record) được dựng lên để chứa:
+- Địa chỉ trả về (do call đẩy vào)
+- `rbp` cũ (được lưu lại để khôi phục sau)
+- Biến cục bộ của hàm
+- Tham số (nếu không đủ chỗ trong register)
+  
+  <img width="627" height="250" alt="image" src="https://github.com/user-attachments/assets/3ffc5a0b-7595-4e90-977a-1dabfd2b36b7" />
+
+  <img width="675" height="290" alt="image" src="https://github.com/user-attachments/assets/d4ddf060-abe7-403c-96e3-a5015005abfc" />
+  
+- Khi ham gọi tiếp một hàm khác, một frame mới lại được dựng chồng lên trên frame này đúng như cơ chế LIFO: hàm gọi sau cùng sẽ kết thúc và giải phóng trước.
+
+Buffer overflow
+- Nếu một hàm ghi dữ liệu vào biến cục bộ (ví dụ buffer) mà không kiểm tra độ dài, dữ liệu dư sẽ tràn lên address cao hơn, đè lên rbp cũ rồi tới return address.
+- Khi ret chạy, nó pop đúng giá trị đã bị ghi đè đó vào rip → kẻ khai thác chọn được nơi CPU chạy tiếp.
+=> Đây chính là nguyên lý của stack buffer overflow, và các kỹ thuật như ROP cũng hoạt động dựa trên việc lợi dụng cơ chế ret lặp đi lặp lại "pop giá trị tiếp theo trên stack rồi nhảy tới đó".
+
 - Khi một buffer local (ví dụ char `buf[16]`) bị ghi tràn (overflow) mà không kiểm tra độ dài, dữ liệu ghi thừa sẽ đè lên saved `rbp`, rồi đè lên return address. Nếu kẻ tấn công kiểm soát được return address, họ có thể điều khiển `rip` sau khi hàm `ret` — đây chính là ý tưởng cốt lõi của stack buffer overflow.
 #  Bit, Byte và Endianness
  - Bit: đơn vị nhỏ nhất, giá trị 0 hoặc 1.
