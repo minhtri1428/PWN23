@@ -8,4 +8,10 @@
 - Là cơ chế bảo vệ ở mức phần cứng và hệ điều hành, gắn cờ các vùng nhớ chứa dữ liệu như Stack, Heap, .data, .bss là read/write only và k thể thực thi.
 - Nếu người khai thác chèn shellcode vào stack rồi ghi đè return address để nhảy tới đó, CPU sẽ phát  hiện thực thi tại vùng không có quyền và hệ điệu hành sẽ gửi tín hiệu dừng chương trình.
 # RELRO (RELocation Read-Only)
-
+- Là cơ chế chuyển bảng GOT sang chế độ read only, để kẻ tấn công k ghi đè đc các địa chỉ trong đó.
+## Các mức RELRO 
+### 1. No RELRO
+- Không có lớp bảo vệ nào, toàn bộ GOT ghi được, thứ tự các section không được sắp xếp lại.
+### 2. Partial RELRO 
+- Linker sắp xếp lại các section để `.got`, `.dynamic`, `.fini_array`, `.init_array` nằm trước các biến toàn cục (.data/.bss), và đánh dấu chúng là read only sau khi nạp. Nhờ vậy lỗi tràn bộ đệm từ .data/.bss không thể ghi đè lên các vùng này.
+- Tuy nhiên, .got.plt (chứa địa chỉ các hàm liên kết động) vẫn dùng Lazy Binding và vẫn có quyền rw-
