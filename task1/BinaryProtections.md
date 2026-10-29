@@ -14,4 +14,9 @@
 - Không có lớp bảo vệ nào, toàn bộ GOT ghi được, thứ tự các section không được sắp xếp lại.
 ### 2. Partial RELRO 
 - Linker sắp xếp lại các section để `.got`, `.dynamic`, `.fini_array`, `.init_array` nằm trước các biến toàn cục (.data/.bss), và đánh dấu chúng là read only sau khi nạp. Nhờ vậy lỗi tràn bộ đệm từ .data/.bss không thể ghi đè lên các vùng này.
-- Tuy nhiên, .got.plt (chứa địa chỉ các hàm liên kết động) vẫn dùng Lazy Binding và vẫn có quyền rw-
+- Tuy nhiên, `.got.plt` (chứa địa chỉ các hàm liên kết động) vẫn dùng Lazy Binding và vẫn có quyền `rw-`.
+### 3. Full RELRO
+- Tắt hoàn toàn Lazy Binding: ngay khi chương trình khởi chạy, dynamic linker phân giải địa chỉ của toàn bộ hàm thư viện và điền sẵn vào bảng GOT.
+- Sau khi điền xong, linker gọi `mprotect()` để đổi quyền của toàn bộ vùng GOT từ `rw-` thành `r--`. Lúc này .got.plt không còn ghi được, `.init_array` và `.fini_array` cũng chỉ đọc.
+- Đổi lại, thời gian khởi động chương trình lâu hơn một chút vì phải phân giải hết symbol ngay từ đầu.
+# Canary
