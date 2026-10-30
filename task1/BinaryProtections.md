@@ -20,3 +20,12 @@
 - Sau khi điền xong, linker gọi `mprotect()` để đổi quyền của toàn bộ vùng GOT từ `rw-` thành `r--`. Lúc này .got.plt không còn ghi được, `.init_array` và `.fini_array` cũng chỉ đọc.
 - Đổi lại, thời gian khởi động chương trình lâu hơn một chút vì phải phân giải hết symbol ngay từ đầu.
 # Canary
+- Là cơ chế giúp phát hiện và ngăn chặn các cuộc tấn công buffer overflow nhắm vào return address trên stack.
+- Vì buffer được ghi từ địa chỉ thấp lên cao, muốn tràn tới saved RBP hoặc return address thì bắt buộc phải ghi đè qua Canary trước.
+### Cách thức hoạt động
+- Chương trình lưu lại giá trị gốc của canary và đặt lên stack.
+
+Trước khi `ret`, so sánh giá trị canary hiện tại trren stack với giá trị gốc đã lưu trước đó. Nếu:
+- Giống : hàm return bình thường.
+- Khác : hàm sẽ bị dừng ngay lập tức, ngăn không cho return address bị kiểm soát.
+- Canary sẽ được tạo lại từ đầu mỗi lần process khởi động, nên kẻ tấn công không thể đoán trước giá trị của nó.
