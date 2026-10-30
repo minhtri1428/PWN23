@@ -1,3 +1,11 @@
+# Buffer Overflow
+- Buffer Overflow xảy ra khi chương trình ghi dữ liệu vào một vùng nhớ vượt quá kích thước đã cấp phát cho nó, khiến dữ liệu bị tràn sang vùng nhớ liền kề.
+
+Nguyên nhân :
+- Ngôn ngữ C/C++ không tự dộng kiểm tra biên khi ghi vào mảng hoặc buffer
+- Dữ liệu người dùng và dữ liệu điều khiển chương trình như (biến cục bộ khác, saved RBP, return address) nằm cạnh nhau trên cùng một stack frame, nên ghi tràn dữ liệu có thể làm hỏng luôn phần điều khiển.
+- Các hàm C gây lỗi : gets(), strcpy(), strcat(), sprintf(), scanf("%s"). Trong đó, gets() nguy hiểm nhất vì k có cách nào để giới hạn độ dài đọc vào của hàm.
+- Buffer được ghi từ địa chỉ thấp lên cao. Nếu ghi vượt quá kích thước buffer, dữ liệu tràn sẽ lần lượt đè lên: biến cục bộ khác → canary (nếu có) → saved RBP → return address → con trỏ hàm/GOT, mức độ nguy hiểm  cũng tăng dần theo thứ tự.
 # PIE (Position Independent Executable
 - PIE là thuộc tính của file binary đc biên dịch dưới dạng mã ko phụ thuộc vị trí, nên có thể đc nạp một cách ngẫu nhiên vào bộ nhớ qua bất kì address nào
 - ASLR (Address Space Layout Randomization) là cơ chế bảo mật của hệ điều hành, xếp ngẫu nhiên vị trí các vùng nhớ của chương trình mỗi lần chạy. Giúp chống lại việc khai thác Stack, Heap, Libraries (libc) ở các vị trí cố định.
@@ -22,7 +30,8 @@
 # Canary
 - Là cơ chế giúp phát hiện và ngăn chặn các cuộc tấn công buffer overflow nhắm vào return address trên stack.
 - Vì buffer được ghi từ địa chỉ thấp lên cao, muốn tràn tới saved RBP hoặc return address thì bắt buộc phải ghi đè qua Canary trước.
-### Cách thức hoạt động
+
+Cách thức hoạt động
 - Chương trình lưu lại giá trị gốc của canary và đặt lên stack.
 
 Trước khi `ret`, so sánh giá trị canary hiện tại trren stack với giá trị gốc đã lưu trước đó. Nếu:
