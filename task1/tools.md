@@ -19,3 +19,20 @@ Tắt/bật bảo vệ
 -z execstack: Bật quyền thực thi trên stack 
 -no-pie: Tắt PIE 
 # 3. Pwndbg 
+- Là công cụ xem chương trình chạy thực tế dựa vào đó ta có thể DEBUG & phân tích động.
+
+Lệnh cơ bản 
+- start chạy 
+- break (b) đặt breakpoint
+- run (r) chạy chương trình
+- continue (c) chạy tiếp
+- next (n) / step (s) chạy qua 1 dòng code 
+- ni/si chạy qua 1 lệnh assembly 
+- disassemble (disas) xem assembly của hàm
+- info registers (i r) xem thanh ghi
+- checksec kiểm tra cơ chế bảo vệ (canary, NX, PIE, RELRO)
+- vmmap xem bản đồ bộ nhớ
+- cyclic/cyclic -l tạo pattern và tìm offset overflow
+- telescope xem nội dung stack, tự resolve con trỏ
+- search tìm chuỗi/byte trong bộ nhớ
+- got/plt xem bảng GOT/PLT
