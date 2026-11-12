@@ -15,9 +15,9 @@ Lệnh cơ bản:
 - gcc -g -o <tên_file_chạy> <tên_file.c>: Biên dịch và giữ thông tin debug (-g).
 
 Tắt/bật bảo vệ 
--fno-stack-protector: Tắt Canary.
--z execstack: Bật quyền thực thi trên stack 
--no-pie: Tắt PIE 
+- fno-stack-protector: Tắt Canary.
+- z execstack: Bật quyền thực thi trên stack 
+- no-pie: Tắt PIE 
 # 3. Pwndbg 
 - Là công cụ xem chương trình chạy thực tế dựa vào đó ta có thể DEBUG & phân tích động.
 
