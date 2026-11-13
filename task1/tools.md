@@ -42,7 +42,8 @@ Lệnh cơ bản
 <img width="1215" height="680" alt="image" src="https://github.com/user-attachments/assets/887d0df3-e0d8-41c8-a79e-78b5c45b0fd5" />
 
 ### Đóng gói dữ liệu (Packing)
-- Chuyển đổi số nguyên (địa chỉ) thành dạng byte để gửi vào chương trình:
+
+Chuyển đổi số nguyên (địa chỉ) thành dạng byte để gửi vào chương trình:
 - p64(value): Đóng gói thành 8 byte (dùng cho kiến trúc 64-bit).
 - p32(value): Đóng gói thành 4 byte (dùng cho kiến trúc 32-bit).
 - u64(data) / u32(data): Giải nén ngược từ byte ra số .
