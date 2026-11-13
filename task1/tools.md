@@ -36,3 +36,39 @@ Lệnh cơ bản
 - telescope xem nội dung stack, tự resolve con trỏ
 - search tìm chuỗi/byte trong bộ nhớ
 - got/plt xem bảng GOT/PLT
+# Pwntools 
+- Là một framemwork Python chuyên dụng cho viết script exploit và tương tác với binary. Nó giúp đơn giản hóa các thao tác lặp đi lặp lại như kết nối, pack địa chỉ, tạo payload và tương tác với tiến trình.
+- Cấu trúc cơ bản của một script exploit
+<img width="1215" height="680" alt="image" src="https://github.com/user-attachments/assets/887d0df3-e0d8-41c8-a79e-78b5c45b0fd5" />
+
+Đóng gói dữ liệu (Packing)
+Chuyển đổi số nguyên (địa chỉ) thành dạng byte để gửi vào chương trình:
+p64(value): Đóng gói thành 8 byte (dùng cho kiến trúc 64-bit).
+p32(value): Đóng gói thành 4 byte (dùng cho kiến trúc 32-bit).
+u64(data) / u32(data): Giải nén ngược từ byte ra số .
+📡 Giao tiếp với Tiến trình (I/O)
+Pwntools cung cấp interface thống nhất cho cả process (local) và remote (server) :
+Gửi dữ liệu:
+p.send(data): Gửi dữ liệu thô.
+p.sendline(data): Gửi dữ liệu kèm ký tự xuống dòng \n.
+p.sendafter(delim, data): Đợi đến khi nhận được delim rồi mới gửi data.
+Nhận dữ liệu:
+p.recv(n): Nhận n byte.
+p.recvline(): Nhận đến hết dòng (gặp \n).
+p.recvuntil(delim): Nhận đến khi gặp chuỗi delim (ví dụ: p.recvuntil(b'name: ')).
+Tương tác thủ công:
+p.interactive(): Chuyển quyền điều khiển cho bạn (thường dùng khi đã có shell).
+🔍 Phân tích File ELF & Tìm Offset
+Đọc thông tin file: elf = ELF('./chall')
+Lấy địa chỉ hàm: elf.symbols['system'] hoặc elf.plt['puts'] .
+Lấy địa chỉ GOT: elf.got['puts'].
+Tìm offset tràn bộ đệm:
+cyclic(200): Tạo một chuỗi pattern tuần hoàn (De Bruijn) để gửi vào chương trình.
+cyclic_find(0x6161616c): Tìm vị trí offset dựa trên giá trị bị crash trong thanh ghi RIP .
+🛠️ Các hàm tiện ích khác
+asm('nop'): Chuyển mã assembly thành mã máy (shellcode).
+shellcraft.sh(): Tự động tạo shellcode để gọi /bin/sh .
+ROP(elf): Tự động tìm các gadget để xây dựng ROP chain .
+
+
+
